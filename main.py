@@ -9,7 +9,6 @@ def main(options):
     check_file_validity([options.as2_types_file, options.as_rel2_file])
     as2_type_df = get_df_from_file(options.as2_types_file)
     get_pie_chart(as2_type_df)
-    import pdb; pdb.set_trace()
 
 
 def get_df_from_file(file_):
@@ -26,6 +25,7 @@ def get_df_from_file(file_):
     df.columns = columns_list
     df = df.set_index(df.columns.values[0])
     return df
+
 
 def get_pie_chart(df):
     unique_vals = list(set(df.type.values.tolist()))
@@ -55,12 +55,12 @@ class Options:
         description = 'Command line inputs for project.'
         parser = argparse.ArgumentParser(description=description)
         # parses command line inputs.
-        inputs = self.parseArgs(parser)
+        inputs = self.parse_args(parser)
         # assigns inputs from parseArgs function to class members
         self.as2_types_file = inputs.as2_types_file
         self.as_rel2_file = inputs.as_rel2_file
 
-    def parseArgs(self, parser):
+    def parse_args(self, parser):
         parser.add_argument('--as2-types', dest='as2_types_file', type=str,
                             action='store',
                             default=path.abspath(path.join(path.dirname(__file__), 'datasets/20201001.as2types.txt')),
