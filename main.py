@@ -10,7 +10,7 @@ def main(options):
     as2_type_df = get_df_from_file(options.as2_types_file)
     get_graph_1(as2_type_df)
     as_rel2_df = get_df_from_file(options.as_rel2_file)
-    get_graph_2(as_rel2_df)
+    get_graph_2(df = as_rel2_df.T)
 
 
 def get_df_from_file(file_):
@@ -44,60 +44,74 @@ def get_graph_1(df):
         plt.savefig(f'{column}-pie.png')
     plt.close()
 
+def create_node(name=0,
+                degree=0,
+                connections=list(),
+                customer=list(),
+                ip_prefs=list(),
+                classification=0,
+                content=0,
+                org_id=0,
+                cone_rank=0,
+                ipv4_out=0,
+                ipv4_pref_out=0):
+    node_dict = {'name':name,
+                'degree': degree,
+                'connections': customer,
+                'customer': customer,
+                'ip_prefs': ip_prefs,
+                'classification': classification,
+                'content': content,
+                'org_id': org_id,
+                'cone_rank': cone_rank,
+                'ipv4_out': ipv4_out,
+                'ipv4_pref_out': ipv4_pref_out}
+    return node_dict
+        
+def get_graph_2(df):
+    data_dict = {}
+    for i in df:
+        data_dict[df[i].ASa] = create_node(name=df[i].ASa)
+        data_dict[df[i].ASa]['connections'].append(df[i].ASb)
+        data_dict[df[i].ASa]['degree'] += 1
+        if df[i].ASb in data_dict:
+            data_dict[df[i].ASb]['degree'] += 1
+        else:
+            data_dict[df[i].ASb] = create_node(name=df[i].ASb)
+            data_dict[df[i].ASb]['connections'].append(df[i].ASb)
+            data_dict[df[i].ASb]['degree'] += 1
+        if df[i].Link == -1:
+            data_dict[df[i].ASa]['customer'].append(df[i].ASb)
+            
+    bins = [0]*6
+    for i in data_dict:
+        if data_dict[i]['degree'] == 1:
+            bins[0] += 1
+        elif 2 < data_dict[i]['degree'] <= 5:
+            bins[1] += 1
+        elif 5 < data_dict[i]['degree'] <= 100:
+            bins[2] += 1
+        elif 100 < data_dict[i]['degree'] <= 200:
+            bins[3] += 1
+        elif 200 < data_dict[i]['degree'] <= 1000:
+            bins[4] += 1
+        elif 1000 < data_dict[i]['degree']:
+            bins[5] += 1
+    bin_names = ['1', '2-5', '6-100', '101-200', '201-1000', '1000+']
 
-def get_graph_2(df,dataFile='data.csv'):
-    if not path.exists(dataFile):
-        list_a = df.ASa.values.tolist()
-        list_b = df.ASb.values.tolist()
-        data_list = list_a + list_b
-        data_set = list(set(data_list))
-        data_set.sort()
-        degree_dict = {}
-        # this takes a hot second, be aware
-        for i in data_set:
-            count_ = data_list.count(i)
-            degree_dict[i] = count_
-        data_df = pd.DataFrame([degree_dict])
-        data_df.to_csv('data.csv')
-    else:
-        data_df = pd.read_csv(dataFile)
-        data_df.drop(data_df.columns[0], axis=1, inplace=True)
-        degree_dict = {}
-        for i in data_df:
-            degree_dict[i] = data_df[i].values.tolist()[0]
-    bins = {'1': 0, '2-5': 0, '6-100': 0, '101-200': 0, '201-1000': 0, '1000+': 0}
-    for i in degree_dict:
-        j = int(i)
-        if j == 1:
-            bins['1'] += degree_dict[i]
-        elif 1 < j <= 5:
-            bins['2-5'] += degree_dict[i]
-        elif 6 < j <= 100:
-            bins['6-100'] += degree_dict[i]
-        elif 100 < j <= 200:
-            bins['101-200'] += degree_dict[i]
-        elif 200 < j <= 1000:
-            bins['201-1000'] += degree_dict[i]
-        elif 1000 < j:
-            bins['1000+'] += degree_dict[i]
-    plt.bar(*zip(*bins.items()))
-    plt.title('Histogram of Node Degree Distribution (Not-Normalized)')
-    plt.savefig('node_degree_hist.png')
-    plt.close()
+    fig1, ax1 = plt.subplots()
+    rects = ax1.bar([0, 1, 2, 3, 4, 5], bins)
+    plt.xticks([0, 1, 2, 3, 4, 5], bin_names)
+    plt.title('AS Node Degree Distribution')
+    plt.xlabel('Number of Distinct Links')
+    plt.ylabel('Number of ASes')
 
-    total = sum(list(degree_dict.values()))
-    normalized_bins = {}
-    for i in bins:
-        normalized_bins[i] = bins[i]/total
+    for rect in rects:
+        height = rect.get_height()
+        ax1.text(rect.get_x() + rect.get_width() / 2., height + 10, '%d' % int(height), ha='center', va='bottom')
 
-    plt.bar(*zip(*normalized_bins.items()))
-    plt.title('Histogram of Node Degree Distribution (Normalized)')
-    plt.savefig('node_degree_hist_normalized.png')
-    plt.close()
-    plt.bar(*zip(*normalized_bins.items()), log=True)
-    plt.title('Histogram of Node Degree Distribution (Normalized) with Log Scaling')
-    plt.savefig('node_degree_hist_normalized_log_scaling.png')
-    plt.close()
+    plt.savefig('node_degree_dist.png', dpi=300)
+    plt.show()
 
 
 def check_file_validity(files):
@@ -123,18 +137,15 @@ class Options:
         # assigns inputs from parseArgs function to class members
         self.as2_types_file = inputs.as2_types_file
         self.as_rel2_file = inputs.as_rel2_file
-
     def parse_args(self, parser):
         parser.add_argument('--as2-types', dest='as2_types_file', type=str,
                             action='store',
                             default=path.abspath(path.join(path.dirname(__file__), 'datasets/20201001.as2types.txt')),
                             help='AS2 type text file')
-
         parser.add_argument('--as-rel2', dest='as_rel2_file', type=str,
                             action='store',
                             default=path.abspath(path.join(path.dirname(__file__), 'datasets/20201001.as-rel2.txt')),
                             help='AS-rel2 text file.')
-
         return parser.parse_args()
 
 
