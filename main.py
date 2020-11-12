@@ -4,13 +4,17 @@ from matplotlib import pyplot as plt
 import sys
 import pandas as pd
 
+from node_utils import ASNode
 
-def main(options):
-    check_file_validity([options.as2_types_file, options.as_rel2_file])
-    as2_type_df = get_df_from_file(options.as2_types_file)
-    get_graph_1(as2_type_df)
-    as_rel2_df = get_df_from_file(options.as_rel2_file)
-    get_graph_2(df = as_rel2_df.T)
+
+def main(opts):
+    check_file_validity([opts.as2_types_file, opts.as_rel2_file])
+    as2_type_df = get_df_from_file(opts.as2_types_file)
+    data_dict = ASNode.sort_classifications(as2_type_df)
+    get_graph_1(data_dict)
+    import pdb; pdb.set_trace()
+    as_rel2_df = get_df_from_file(opts.as_rel2_file)
+    get_graph_2(df=as_rel2_df.T)
 
 
 def get_df_from_file(file_):
@@ -29,62 +33,46 @@ def get_df_from_file(file_):
         column_values_str = 'ASa|ASb|Link|Source'
     sep = list(set([x for x in column_values_str if not x.isalpha() and x != ":" and not x.isnumeric()]))[0]
     columns_list = column_values_str.split(sep)
-    df = pd.read_csv(file_, delimiter=sep, skiprows=skip)
-    df.columns = columns_list
+    df = pd.read_csv(file_, header=None, names=columns_list, delimiter=sep, skiprows=skip)
     return df
 
 
-def get_graph_1(df):
-    df = df.set_index(df.columns.values[0])
-    for column in df.columns:
-        values = df[column].value_counts()
-        labels = list(set(df[column].values.tolist()))
-        plt.pie(x=values, autopct="%.1f%%", explode=[0.05] * len(labels), labels=labels, pctdistance=0.5)
-        plt.title(f'AS2 {column}')
-        plt.savefig(f'{column}-pie.png')
+def get_graph_1(data_dict):
+    labels = ['Transit/Access', 'Content', 'Enterprise']
+    bins = [0]*len(labels)
+    for i in data_dict:
+        if data_dict[i].classification == 'Transit/Access':
+            bins[0] += 1
+        elif data_dict[i].classification == 'Content':
+            bins[1] += 1
+        elif data_dict[i].classification == 'Enterprise':
+            bins[2] += 1
+    fig, ax = plt.subplots()
+    plt.pie(x=bins, autopct="%1.1f%%", explode=[0.05] * len(labels), labels=labels)
+    ax.axis('equal')
+    plt.title(f'AS Categories')
+    plt.savefig(f'as_classifications.png', dpi=300, format='png')
     plt.close()
 
-def create_node(name=0,
-                degree=0,
-                connections=list(),
-                customer=list(),
-                ip_prefs=list(),
-                classification=0,
-                content=0,
-                org_id=0,
-                cone_rank=0,
-                ipv4_out=0,
-                ipv4_pref_out=0):
-    node_dict = {'name':name,
-                'degree': degree,
-                'connections': customer,
-                'customer': customer,
-                'ip_prefs': ip_prefs,
-                'classification': classification,
-                'content': content,
-                'org_id': org_id,
-                'cone_rank': cone_rank,
-                'ipv4_out': ipv4_out,
-                'ipv4_pref_out': ipv4_pref_out}
-    return node_dict
-        
+
 def get_graph_2(df):
     data_dict = {}
     for i in df:
-        data_dict[df[i].ASa] = create_node(name=df[i].ASa)
-        data_dict[df[i].ASa]['connections'].append(df[i].ASb)
-        data_dict[df[i].ASa]['degree'] += 1
+        data_dict[df[i].ASa] = ASNode(node_name=df[i].ASa)
+        data_dict[df[i].ASa].connections.append(df[i].ASb)
+        data_dict[df[i].ASa].degree += 1
         if df[i].ASb in data_dict:
-            data_dict[df[i].ASb]['degree'] += 1
+            data_dict[df[i].ASb].degree += 1
         else:
-            data_dict[df[i].ASb] = create_node(name=df[i].ASb)
-            data_dict[df[i].ASb]['connections'].append(df[i].ASb)
-            data_dict[df[i].ASb]['degree'] += 1
+            data_dict[df[i].ASb] = ASNode(node_name=df[i].ASb)
+            data_dict[df[i].ASb].connections.append(df[i].ASb)
+            data_dict[df[i].ASb].degree += 1
         if df[i].Link == -1:
-            data_dict[df[i].ASa]['customer'].append(df[i].ASb)
+            data_dict[df[i].ASa].customer.append(df[i].ASb)
             
     bins = [0]*6
     for i in data_dict:
+        import pdb; pdb.set_trace()
         if data_dict[i]['degree'] == 1:
             bins[0] += 1
         elif 2 < data_dict[i]['degree'] <= 5:
@@ -111,7 +99,6 @@ def get_graph_2(df):
         ax1.text(rect.get_x() + rect.get_width() / 2., height + 10, '%d' % int(height), ha='center', va='bottom')
 
     plt.savefig('node_degree_dist.png', dpi=300)
-    plt.show()
 
 
 def check_file_validity(files):
