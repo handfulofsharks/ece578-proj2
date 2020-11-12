@@ -6,12 +6,18 @@ import pandas as pd
 
 
 def main(options):
-    check_file_validity([options.as2_types_file, options.as_rel2_file])
+    check_file_validity([options.as2_types_file, options.as_rel2_file, options.as_rv2_file])
     as2_type_df = get_df_from_file(options.as2_types_file)
     get_graph_1(as2_type_df)
     as_rel2_df = get_df_from_file(options.as_rel2_file)
     get_graph_2(df = as_rel2_df.T)
+    as_rv2_df = get_rv2_df(options.as_rv2_file)
+    print(as_rv2_df.head())
 
+def get_rv2_df(file_):
+    df = pd.read_csv(file_, delimiter='\t', header=None)
+    df.columns = ['ip', 'length', 'as']
+    return df
 
 def get_df_from_file(file_):
     column_values_str = None
@@ -137,6 +143,7 @@ class Options:
         # assigns inputs from parseArgs function to class members
         self.as2_types_file = inputs.as2_types_file
         self.as_rel2_file = inputs.as_rel2_file
+        self.as_rv2_file = inputs.as_rv2_file
     def parse_args(self, parser):
         parser.add_argument('--as2-types', dest='as2_types_file', type=str,
                             action='store',
@@ -146,6 +153,10 @@ class Options:
                             action='store',
                             default=path.abspath(path.join(path.dirname(__file__), 'datasets/20201001.as-rel2.txt')),
                             help='AS-rel2 text file.')
+        parser.add_argument('--rv2', dest='as_rv2_file', type=str,
+                            action='store',
+                            default=path.abspath(path.join(path.dirname(__file__), 'datasets/routeviews-rv2-20201110-1200.pfx2as')),
+                            help='AS-rv2 text file.')
         return parser.parse_args()
 
 
