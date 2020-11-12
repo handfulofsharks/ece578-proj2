@@ -4,7 +4,8 @@ class ASNode:
 
     Parameters
     ----------
-    None
+    node_name : string
+        String containing the name of the node
 
     Returns
     -------
@@ -18,7 +19,7 @@ class ASNode:
         self.name = node_name
         self.degree = 0
         self.connections = list()
-        self.customer = list()
+        self.customers = list()
         self.ip_prefs = list()
         self.classification = None
         self.org_type = ''
@@ -93,7 +94,7 @@ def sort_relationships(data_dict, df):
             data_dict[row.ASb].degree += 1
             data_dict[row.ASb].connections.append(index)
         if row.Link == -1:
-            data_dict[index].customer.append(row.ASb)
+            data_dict[index].customers.append(row.ASb)
     return data_dict
 
 
@@ -114,6 +115,8 @@ def check_file_validity(files):
     ------
     None
     """
+    from os import path
+    import sys
     validity = 0
     for file_ in files:
         if not path.exists(file_) and not path.isfile(file_):
@@ -145,6 +148,7 @@ def get_df_from_file(file_):
     ------
     None
     """
+    import pandas as pd
     column_values_str = None
     with open(file_, 'r') as f:
         skip = 0
