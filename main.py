@@ -22,9 +22,10 @@ def main(opts):
     ------
     None
     """
-    check_file_validity([opts.as2_types_file, opts.as_rel2_file])
+    check_file_validity([opts.as2_types_file, opts.as_rel2_file, opts.as_rv2_file])
     as2_type_df = get_df_from_file(opts.as2_types_file)
     as_rel2_df = get_df_from_file(opts.as_rel2_file)
+    as_rv2_df = get_rv2_df(opts.as_rv2_file)
     data_dict = sort_classifications(as2_type_df)
     data_dict = sort_relationships(data_dict, as_rel2_df)
     get_graph_1(data_dict)
@@ -179,6 +180,7 @@ class Options:
         inputs = self.parse_args(parser)
         self.as2_types_file = inputs.as2_types_file
         self.as_rel2_file = inputs.as_rel2_file
+        self.as_rv2_file = inputs.as_rv2_file
 
     @staticmethod
     def parse_args(parser):

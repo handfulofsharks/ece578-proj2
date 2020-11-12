@@ -166,3 +166,9 @@ def get_df_from_file(file_):
     columns_list = column_values_str.split(sep)
     df = pd.read_csv(file_, header=None, names=columns_list, delimiter=sep, skiprows=skip)
     return df
+
+def get_rv2_df(file_):
+    import pandas as pd
+    df = pd.read_csv(file_, header=None, sep="\t")
+    df.columns = ['ip', 'prefix', 'as']
+    return df
