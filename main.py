@@ -23,13 +23,18 @@ def main(opts):
     None
     """
     check_file_validity([opts.as2_types_file, opts.as_rel2_file, opts.as_rv2_file])
+
     as2_type_df = get_df_from_file(opts.as2_types_file)
     as_rel2_df = get_df_from_file(opts.as_rel2_file)
     as_rv2_df = get_rv2_df(opts.as_rv2_file)
+
     data_dict = sort_classifications(as2_type_df)
     data_dict = sort_relationships(data_dict, as_rel2_df)
+    data_dict = sort_ip_prefixes(data_dict, as_rv2_df)
+
     get_graph_1(data_dict)
     get_graph_2(data_dict)
+    get_graph_3(data_dict)
     get_graph_4(data_dict)
 
 
@@ -117,6 +122,51 @@ def get_graph_2(data_dict):
     plt.title('Autonomous System Node Degree Distribution')
     plt.savefig('node_degree_dist.png', dpi=300)
     plt.close(fig)
+
+def get_graph_3(data_dict):
+    """
+    Given a dataframe of AS (Autonomous Systems) IP mappings, create histogram of the IP space assigned to each AS
+
+    Parameters
+    ----------
+    data_dict : dictionary of AS node object
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    None
+    """
+    labels = ['0-1000', '1000-10K', '10k-100k', '100k-1M', '1M-10M', '10M+']
+    bins = [0]*len(labels)
+    for i in data_dict:
+        if data_dict[i].calc_space() <= 1000:
+            bins[0] += 1
+        elif 1000 < data_dict[i].calc_space() <= 10E3:
+            bins[1] += 1
+        elif 10E3 < data_dict[i].calc_space() <= 100E3:
+            bins[2] += 1
+        elif 100E3 < data_dict[i].calc_space() <= 1E6:
+            bins[3] += 1
+        elif 1E6 < data_dict[i].calc_space() <= 10E6:
+            bins[4] += 1
+        elif 10E6 < data_dict[i].calc_space():
+            bins[5] += 1
+    fig, ax1 = plt.subplots()
+    rects = ax1.bar(list(range(len(bins))), bins)
+    for rect in rects:
+        height = rect.get_height()
+        ax1.text(rect.get_x() + rect.get_width() / 2.,
+                 height + 10, '%d' % int(height), ha='center', va='bottom')
+    plt.xticks(list(range(len(labels))), labels)
+    plt.xlabel('# of IPv4 addresses')
+    plt.ylabel('Number of Autonomous Systems')
+    plt.title('Autonomous System IP Space Distribution')
+    plt.savefig('ip_space_dist.png', dpi=300)
+    plt.close(fig)
+
 
 
 def get_graph_4(data_dict):
