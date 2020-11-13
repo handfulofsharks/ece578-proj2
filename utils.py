@@ -98,8 +98,8 @@ def sort_relationships(data_dict, df):
             data_dict[index].degree += 1
             data_dict[index].connections.append(row.ASb)
         if row.ASb in data_dict:
-            data_dict[index].degree += 1
-            data_dict[index].connections.append(index)
+            data_dict[row.ASb].degree += 1
+            data_dict[row.ASb].connections.append(index)
         else:
             data_dict[row.ASb] = ASNode(node_name=row.ASb)
             data_dict[row.ASb].degree += 1
