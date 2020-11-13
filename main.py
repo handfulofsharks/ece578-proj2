@@ -1,6 +1,7 @@
 import argparse
 from os import path
 from matplotlib import pyplot as plt
+from time import perf_counter
 
 from utils import *
 
@@ -14,22 +15,54 @@ def main(opts):
     opts : argparse object
         Object containing variables set by default or the user via command line
     """
-    check_file_validity([opts.as2_types_file, opts.as_rel2_file, opts.as_rv2_file, opts.as_org_file])
-
-    (as_org_df, as_org_id_df) = get_org_dfs(opts.as_org_file)
+    s_time = perf_counter()
+    check_file_validity([opts.as2_types_file, opts.as_rel2_file, opts.as_rv2_file])
+    e_time = perf_counter()
+    print(f'Status: Checking file validity finished. Completed in: {e_time-s_time} seconds\n')
+    s_time = perf_counter()
     as2_type_df = get_df_from_file(opts.as2_types_file)
+    e_time = perf_counter()
+    print(f'Status: Reading file finished. Completed in: {e_time-s_time} seconds')
+    s_time = perf_counter()
     as_rel2_df = get_df_from_file(opts.as_rel2_file)
+    e_time = perf_counter()
+    print(f'Status: Reading file finished. Completed in: {e_time-s_time} seconds')
+    s_time = perf_counter()
     as_rv2_df = get_rv2_df(opts.as_rv2_file)
-
+    e_time = perf_counter()
+    print(f'Status: Reading file finished. Completed in: {e_time-s_time} seconds\n')
+    s_time = perf_counter()
+    (as_org_df, as_org_id_df) = get_org_dfs(opts.as_org_file)
+    e_time = perf_counter()
+    print(f'Status: Reading files finished. Completed in: {e_time-s_time} seconds\n')
+    s_time = perf_counter()
     data_dict = sort_classifications(as2_type_df)
+    e_time = perf_counter()
+    print(f'Status: Sorting file finished. Completed in: {e_time-s_time} seconds')
+    s_time = perf_counter()
     data_dict = sort_relationships(data_dict, as_rel2_df)
+    e_time = perf_counter()
+    print(f'Status: Sorting file finished. Completed in: {e_time-s_time} seconds')
+    s_time = perf_counter()
     data_dict = sort_ip_prefixes(data_dict, as_rv2_df)
-
-
+    e_time = perf_counter()
+    print(f'Status: Sorting file finished. Completed in: {e_time-s_time} seconds\n')
+    s_time = perf_counter()
     get_graph_1(data_dict)
+    e_time = perf_counter()
+    print(f'Status: Plotting graph 1 finished. Completed in: {e_time-s_time} seconds')
+    s_time = perf_counter()
     get_graph_2(data_dict)
+    e_time = perf_counter()
+    print(f'Status: Plotting graph 2 finished. Completed in: {e_time-s_time} seconds')
+    s_time = perf_counter()
     get_graph_3(data_dict)
+    e_time = perf_counter()
+    print(f'Status: Plotting graph 3 finished. Completed in: {e_time-s_time} seconds')
+    s_time = perf_counter()
     get_graph_4(data_dict)
+    e_time = perf_counter()
+    print(f'Status: Plotting graph 4 finished. Completed in: {e_time-s_time} seconds')
 
     t1_ASes = infer_T1_ASes(data_dict)
     get_table_1(t1_ASes, as_org_df, as_org_id_df)
@@ -45,6 +78,7 @@ def get_graph_1(data_dict):
     data_dict : dictionary of AS Node objects
         data frame that contains AS data in the format of AS | source | Type
     """
+    print(f'Status: creating graph 1.')
     labels = ['Transit/Access', 'Content', 'Enterprise']
     bins = [0]*len(labels)
     for i in data_dict:
@@ -55,7 +89,7 @@ def get_graph_1(data_dict):
         elif data_dict[i].classification == 'Enterprise':
             bins[2] += 1
     for i in range(len(bins)):
-        labels[i] = f'{labels[i]} {round(bins[i]/sum(bins),2)}%'
+        labels[i] = f'{labels[i]} {round(bins[i]/sum(bins)*100,3)}%'
     fig = plt.figure(figsize=(6, 3))
     ax = fig.add_subplot(111)
     ax.axis('equal')
@@ -76,6 +110,8 @@ def get_graph_2(data_dict):
     data_dict : dictionary of AS Node objects
         data frame that contains AS data in the format of AS | source | Type
     """
+    print(f'Status: creating graph 2.')
+    import numpy as np
     labels = ['1', '2-5', '6-100', '101-200', '201-1000', '1000+']
     bins = [0]*len(labels)
 
@@ -92,15 +128,13 @@ def get_graph_2(data_dict):
             bins[4] += 1
         elif 1000 < data_dict[i].degree:
             bins[5] += 1
-    fig, ax1 = plt.subplots()
-    rects = ax1.bar(list(range(len(bins))), bins)
-    for rect in rects:
-        height = rect.get_height()
-        ax1.text(rect.get_x() + rect.get_width() / 2.,
-                 height + 10, '%d' % int(height), ha='center', va='bottom')
+    fig, ax = plt.subplots()
+    bins = (np.array(bins)/sum(bins)*100).tolist()
+    ax.grid(which="both", zorder=0)
+    ax.bar(list(range(len(bins))), bins, zorder=3)
     plt.xticks(list(range(len(labels))), labels)
     plt.xlabel('Number of Distinct Links')
-    plt.ylabel('Number of Autonomous Systems')
+    plt.ylabel('Percentage of Autonomous Systems')
     plt.title('Autonomous System Node Degree Distribution')
     plt.savefig('node_degree_dist.png', dpi=300)
     plt.close(fig)
@@ -114,6 +148,7 @@ def get_graph_3(data_dict):
     ----------
     data_dict : dictionary of AS node object
     """
+    print(f'Status: creating graph 3.')
     labels = ['0-1000', '1000-10K', '10k-100k', '100k-1M', '1M-10M', '10M+']
     bins = [0]*len(labels)
     for i in data_dict:
@@ -129,11 +164,11 @@ def get_graph_3(data_dict):
             bins[4] += 1
         elif 10E6 < data_dict[i].calc_space():
             bins[5] += 1
-    fig, ax1 = plt.subplots()
-    rects = ax1.bar(list(range(len(bins))), bins)
+    fig, ax = plt.subplots()
+    rects = ax.bar(list(range(len(bins))), bins)
     for rect in rects:
         height = rect.get_height()
-        ax1.text(rect.get_x() + rect.get_width() / 2.,
+        ax.text(rect.get_x() + rect.get_width() / 2.,
                  height + 10, '%d' % int(height), ha='center', va='bottom')
     plt.xticks(list(range(len(labels))), labels)
     plt.xlabel('# of IPv4 addresses')
@@ -152,22 +187,15 @@ def get_graph_4(data_dict):
     ----------
     data_dict : dictionary of AS Node objects
         data frame that contains AS data in the format of AS | source | Type
-
-    Returns
-    -------
-    None
-
-    Raises
-    ------
-    None
     """
+    print(f'Status: creating graph 4.')
     labels = ['Transit/Access with\n >1 Customers', 'Transit/Access Other',
               'Content with no\n Customers and >1 peers', 'Content Other',
               'Enterprise with no\n Customers or Peers', 'Enterprise Other']
     bins = [0]*len(labels)
     for i in data_dict:
         if data_dict[i].classification == 'Transit/Access':
-            if len(data_dict[i].customers) > 1:
+            if len(data_dict[i].customers) >= 1:
                 bins[0] += 1
             else:
                 bins[1] += 1
@@ -182,7 +210,7 @@ def get_graph_4(data_dict):
             else:
                 bins[5] += 1
     for i in range(len(bins)):
-        labels[i] = f'{labels[i]} {round(bins[i]/sum(bins),2)}%'
+        labels[i] = f'{labels[i]} {round(bins[i]/sum(bins)*100,3)}%'
     fig = plt.figure(figsize=(6, 3))
     ax = fig.add_subplot(111)
     ax.axis('equal')
@@ -249,7 +277,8 @@ class Options:
                             help='AS-rel2 text file.')
         parser.add_argument('--rv2', dest='as_rv2_file', type=str,
                             action='store',
-                            default=path.abspath(path.join(path.dirname(__file__), 'datasets/routeviews-rv2-20201110-1200.pfx2as')),
+                            default=path.abspath(path.join(path.dirname(__file__),
+                                                           'datasets/routeviews-rv2-20201110-1200.pfx2as')),
                             help='AS-rv2 text file.')
         parser.add_argument('--orgs', dest='as_org_file', type=str,
                             action='store',
