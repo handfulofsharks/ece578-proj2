@@ -60,6 +60,8 @@ def main(opts):
     e_time = perf_counter()
     print(f'Status: Plotting graph 4 finished. Completed in: {e_time-s_time} seconds')
 
+    t1_ASes = infer_T1_ASes(data_dict)
+
 
 def get_graph_1(data_dict):
     """
@@ -213,6 +215,28 @@ def get_graph_4(data_dict):
     plt.savefig(f'as_classifications_detailed.png', dpi=300, format='png', bbox_inches="tight")
     plt.close(fig)
 
+def infer_T1_ASes(data_dict):
+    sorted_dict = sorted(data_dict.items(), key=lambda x: x[1].degree, reverse=True)
+    s = list()
+    as_count = 0
+    for AS in sorted_dict:
+        if not s:
+            s.append(AS[1])
+        else:
+            skip = False
+            for node in s:
+                if not AS[0] in node.connections:
+                    if len(s) < 10:
+                        skip = True
+                        break
+                    else:
+                        return
+            if not skip:
+                s.append(AS[1])
+        as_count += 1
+        if as_count > 50:
+            break
+    return s
 
 class Options:
     """

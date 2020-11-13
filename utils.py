@@ -1,4 +1,7 @@
+from os import path
 import pandas as pd
+import re
+import sys
 
 
 class ASNode:
@@ -10,7 +13,6 @@ class ASNode:
     node_name : string
         String containing the name of the node
     """
-
     def __init__(self, node_name):
         self.name = node_name
         self.degree = 0
@@ -102,7 +104,6 @@ def sort_relationships(data_dict, df):
 
 def sort_ip_prefixes(data_dict, df):
     print(f'Status: Sorting data frame by IP prefixes.')
-    import re
     df.set_index(df.columns.values[2], inplace=True)
     for index, row in df.iterrows():
         ASes = re.findall(r'\d+', index)
@@ -126,8 +127,6 @@ def check_file_validity(files):
     files : list of strings
         list containing file path strings
     """
-    from os import path
-    import sys
     validity = 0
     for file_ in files:
         if not path.exists(file_) and not path.isfile(file_):
@@ -180,3 +179,7 @@ def get_rv2_df(file_):
     df = pd.read_csv(file_, header=None, sep="\t")
     df.columns = ['IP', 'Prefix-Length', 'AS']
     return df
+
+
+def get_org_df(file_):
+    raise NotImplementedError
