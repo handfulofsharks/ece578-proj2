@@ -84,7 +84,7 @@ def get_graph_1(data_dict):
         elif data_dict[i].classification == 'Enterprise':
             bins[2] += 1
     for i in range(len(bins)):
-        labels[i] = f'{labels[i]} {round(bins[i]/sum(bins),2)}%'
+        labels[i] = f'{labels[i]} {round(bins[i]/sum(bins)*100,3)}%'
     fig = plt.figure(figsize=(6, 3))
     ax = fig.add_subplot(111)
     ax.axis('equal')
@@ -124,12 +124,12 @@ def get_graph_2(data_dict):
         elif 1000 < data_dict[i].degree:
             bins[5] += 1
     fig, ax = plt.subplots()
-    bins = (np.array(bins)/sum(bins)).tolist()
+    bins = (np.array(bins)/sum(bins)*100).tolist()
     ax.grid(which="both", zorder=0)
     ax.bar(list(range(len(bins))), bins, zorder=3)
     plt.xticks(list(range(len(labels))), labels)
     plt.xlabel('Number of Distinct Links')
-    plt.ylabel('Distribution of Autonomous Systems')
+    plt.ylabel('Percentage of Autonomous Systems')
     plt.title('Autonomous System Node Degree Distribution')
     plt.savefig('node_degree_dist.png', dpi=300)
     plt.close(fig)
@@ -190,7 +190,7 @@ def get_graph_4(data_dict):
     bins = [0]*len(labels)
     for i in data_dict:
         if data_dict[i].classification == 'Transit/Access':
-            if len(data_dict[i].customers) > 1:
+            if len(data_dict[i].customers) >= 1:
                 bins[0] += 1
             else:
                 bins[1] += 1
@@ -205,7 +205,7 @@ def get_graph_4(data_dict):
             else:
                 bins[5] += 1
     for i in range(len(bins)):
-        labels[i] = f'{labels[i]} {round(bins[i]/sum(bins),3)}%'
+        labels[i] = f'{labels[i]} {round(bins[i]/sum(bins)*100,3)}%'
     fig = plt.figure(figsize=(6, 3))
     ax = fig.add_subplot(111)
     ax.axis('equal')
