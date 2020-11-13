@@ -1,3 +1,7 @@
+import pandas as pd
+import re
+from os import path
+import sys
 class ASNode:
     """
     Class to contain AS (Autonomous Systems) node information
@@ -101,7 +105,7 @@ def sort_relationships(data_dict, df):
 
 
 def sort_ip_prefixes(data_dict, df):
-    import re
+
     df.set_index(df.columns.values[2], inplace=True)
     for index, row in df.iterrows():
         ASes = re.findall(r'\d+', index)
@@ -133,8 +137,6 @@ def check_file_validity(files):
     ------
     None
     """
-    from os import path
-    import sys
     validity = 0
     for file_ in files:
         if not path.exists(file_) and not path.isfile(file_):
@@ -166,7 +168,6 @@ def get_df_from_file(file_):
     ------
     None
     """
-    import pandas as pd
     column_values_str = None
     with open(file_, 'r') as f:
         skip = 0
@@ -187,7 +188,6 @@ def get_df_from_file(file_):
 
 
 def get_rv2_df(file_):
-    import pandas as pd
     df = pd.read_csv(file_, header=None, sep="\t")
     df.columns = ['IP', 'Prefix-Length', 'AS']
     return df
