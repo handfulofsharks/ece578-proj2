@@ -2,6 +2,7 @@ import pandas as pd
 import re
 from os import path
 import sys
+import numpy as np
 class ASNode:
     """
     Class to contain AS (Autonomous Systems) node information
@@ -192,5 +193,12 @@ def get_rv2_df(file_):
     df.columns = ['IP', 'Prefix-Length', 'AS']
     return df
 
-def get_org_df(file_):
-    raise NotImplementedError
+def get_org_dfs(file_):
+    df1 = pd.read_csv(file_, sep='|', header=None, skiprows=15, nrows=80179)
+    df1.columns = ['org_id', 'changed', 'name', 'country', 'source']
+
+    df2 = pd.read_csv(file_, sep='|', header=None, skiprows=80195)
+    df2.columns = ['id', 'changed', 'name', 'org_id', 'opaque_id', 'source']
+
+    return (df1, df2)
+

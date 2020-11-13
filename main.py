@@ -14,8 +14,9 @@ def main(opts):
     opts : argparse object
         Object containing variables set by default or the user via command line
     """
-    check_file_validity([opts.as2_types_file, opts.as_rel2_file, opts.as_rv2_file])
+    check_file_validity([opts.as2_types_file, opts.as_rel2_file, opts.as_rv2_file, opts.as_org_file])
 
+    (as_org_df, as_org_id_df) = get_org_dfs(opts.as_org_file)
     as2_type_df = get_df_from_file(opts.as2_types_file)
     as_rel2_df = get_df_from_file(opts.as_rel2_file)
     as_rv2_df = get_rv2_df(opts.as_rv2_file)
@@ -31,6 +32,7 @@ def main(opts):
     get_graph_4(data_dict)
 
     t1_ASes = infer_T1_ASes(data_dict)
+    get_table_1(t1_ASes, as_org_df, as_org_id_df)
 
 
 def get_graph_1(data_dict):
@@ -190,6 +192,14 @@ def get_graph_4(data_dict):
     plt.savefig(f'as_classifications_detailed.png', dpi=300, format='png', bbox_inches="tight")
     plt.close(fig)
 
+def get_table_1(top, org_df, id_df):
+    for AS in top:
+        org_id = id_df.loc[id_df['id'] == AS.name, 'org_id'].values[0]
+        print(org_id)
+        name = org_df.loc[org_df['org_id'] == org_id, 'name'].values[0]
+        print(name)
+
+
 def infer_T1_ASes(data_dict):
     sorted_dict = sorted(data_dict.items(), key=lambda x: x[1].degree, reverse=True)
     s = list()
@@ -225,6 +235,7 @@ class Options:
         self.as2_types_file = inputs.as2_types_file
         self.as_rel2_file = inputs.as_rel2_file
         self.as_rv2_file = inputs.as_rv2_file
+        self.as_org_file = inputs.as_org_file
 
     @staticmethod
     def parse_args(parser):
@@ -240,6 +251,10 @@ class Options:
                             action='store',
                             default=path.abspath(path.join(path.dirname(__file__), 'datasets/routeviews-rv2-20201110-1200.pfx2as')),
                             help='AS-rv2 text file.')
+        parser.add_argument('--orgs', dest='as_org_file', type=str,
+                            action='store',
+                            default=path.abspath(path.join(path.dirname(__file__), 'datasets/20201001.as-org2info.txt')),
+                            help='Org info text file.')
         return parser.parse_args()
 
 
