@@ -180,6 +180,7 @@ def get_rv2_df(file_):
     return df
 
 def get_org_dfs(file_):
+    print(f'Status: Reading {file_}')
     df1 = pd.read_csv(file_, sep='|', header=None, skiprows=15, nrows=80179)
     df1.columns = ['org_id', 'changed', 'name', 'country', 'source']
 

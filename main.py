@@ -2,6 +2,7 @@ import argparse
 from os import path
 from matplotlib import pyplot as plt
 from time import perf_counter
+import csv
 
 from utils import *
 
@@ -30,11 +31,11 @@ def main(opts):
     s_time = perf_counter()
     as_rv2_df = get_rv2_df(opts.as_rv2_file)
     e_time = perf_counter()
-    print(f'Status: Reading file finished. Completed in: {e_time-s_time} seconds\n')
+    print(f'Status: Reading file finished. Completed in: {e_time-s_time} seconds')
     s_time = perf_counter()
     (as_org_df, as_org_id_df) = get_org_dfs(opts.as_org_file)
     e_time = perf_counter()
-    print(f'Status: Reading files finished. Completed in: {e_time-s_time} seconds\n')
+    print(f'Status: Reading file finished. Completed in: {e_time-s_time} seconds\n')
     s_time = perf_counter()
     data_dict = sort_classifications(as2_type_df)
     e_time = perf_counter()
@@ -64,8 +65,11 @@ def main(opts):
     e_time = perf_counter()
     print(f'Status: Plotting graph 4 finished. Completed in: {e_time-s_time} seconds')
 
+    s_time = perf_counter()
     t1_ASes = infer_T1_ASes(data_dict)
     get_table_1(t1_ASes, as_org_df, as_org_id_df)
+    e_time = perf_counter()
+    print(f'Status: Inferring T1 ASes finished. Completed in: {e_time-s_time} seconds')
 
 
 def get_graph_1(data_dict):
@@ -221,11 +225,19 @@ def get_graph_4(data_dict):
     plt.close(fig)
 
 def get_table_1(top, org_df, id_df):
+    rows = list()
+    rank = 1
     for AS in top:
         org_id = id_df.loc[id_df['id'] == AS.name, 'org_id'].values[0]
-        print(org_id)
         name = org_df.loc[org_df['org_id'] == org_id, 'name'].values[0]
-        print(name)
+
+        rows.append((rank, AS.name, org_id, name))
+        rank += 1
+
+    with open('tier1_as.csv', mode='w') as t1_file:
+        row_writer = csv.writer(t1_file, delimiter=',')
+        for row in rows:
+            row_writer.writerow(row)
 
 
 def infer_T1_ASes(data_dict):
