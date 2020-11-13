@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 class ASNode:
     """
     Class to contain AS (Autonomous Systems) node information
@@ -6,15 +9,8 @@ class ASNode:
     ----------
     node_name : string
         String containing the name of the node
-
-    Returns
-    -------
-    None
-
-    Raises
-    ------
-    None
     """
+
     def __init__(self, node_name):
         self.name = node_name
         self.degree = 0
@@ -27,6 +23,7 @@ class ASNode:
         self.cone_rank = 0
         self.ipv4_out = 0
         self.ipv4_pref_out = 0
+
     def calc_space(self):
         space = 0
         for ip in self.ip_prefs:
@@ -34,12 +31,13 @@ class ASNode:
         return space
 
 
-class IP_Prefix:
+class IpPrefix:
     def __init__(self, prefix, length):
         self.prefix = prefix
         self.length = length
         self.space = pow(2, 32 - self.length)
-    
+
+
 def sort_classifications(df):
     """
     Read in a data frame that contains AS (Autonomous Systems) classification data and parse it into node
@@ -55,6 +53,7 @@ def sort_classifications(df):
     data_dict
         dictionary of AS Node objects
     """
+    print(f'Status: Sorting data frame by classification.')
     df = df.set_index(df.columns.values[0])
     data_dict = dict()
     for index, row in df.iterrows():
@@ -80,6 +79,7 @@ def sort_relationships(data_dict, df):
     data_dict
         dictionary of node objects
     """
+    print(f'Status: Sorting data frame by relationships.')
     for index, row in df.iterrows():
         if row.ASa in data_dict:
             data_dict[row.ASa].degree += 1
@@ -101,6 +101,7 @@ def sort_relationships(data_dict, df):
 
 
 def sort_ip_prefixes(data_dict, df):
+    print(f'Status: Sorting data frame by IP prefixes.')
     import re
     df.set_index(df.columns.values[2], inplace=True)
     for index, row in df.iterrows():
@@ -109,10 +110,10 @@ def sort_ip_prefixes(data_dict, df):
             for AS in ASes:
                 AS = int(AS)
                 if AS in data_dict:
-                    data_dict[AS].ip_prefs.append(IP_Prefix(row[0], row[1]))
+                    data_dict[AS].ip_prefs.append(IpPrefix(row[0], row[1]))
                 else:
                     data_dict[AS] = ASNode(node_name=AS)
-                    data_dict[AS].ip_prefs.append(IP_Prefix(row[0], row[1]))
+                    data_dict[AS].ip_prefs.append(IpPrefix(row[0], row[1]))
     return data_dict
 
 
@@ -124,14 +125,6 @@ def check_file_validity(files):
     ----------
     files : list of strings
         list containing file path strings
-
-    Returns
-    -------
-    None
-
-    Raises
-    ------
-    None
     """
     from os import path
     import sys
@@ -161,12 +154,8 @@ def get_df_from_file(file_):
     -------
     df: pandas dataframe
         dataframe containing information from the file read
-
-    Raises
-    ------
-    None
     """
-    import pandas as pd
+    print(f'Status: Reading {file_}')
     column_values_str = None
     with open(file_, 'r') as f:
         skip = 0
@@ -187,7 +176,7 @@ def get_df_from_file(file_):
 
 
 def get_rv2_df(file_):
-    import pandas as pd
+    print(f'Status: Reading {file_}')
     df = pd.read_csv(file_, header=None, sep="\t")
     df.columns = ['IP', 'Prefix-Length', 'AS']
     return df
