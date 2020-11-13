@@ -33,11 +33,12 @@ def main(opts):
     data_dict = sort_ip_prefixes(data_dict, as_rv2_df)
 
 
-    infer_T1_ASes(data_dict)
     get_graph_1(data_dict)
     get_graph_2(data_dict)
     get_graph_3(data_dict)
     get_graph_4(data_dict)
+
+    t1_ASes = infer_T1_ASes(data_dict)
 
 
 def get_graph_1(data_dict):
@@ -241,6 +242,7 @@ def infer_T1_ASes(data_dict):
         as_count += 1
         if as_count > 50:
             break
+    return s
 
 class Options:
     """

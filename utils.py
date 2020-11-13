@@ -197,3 +197,6 @@ def get_rv2_df(file_):
     df = pd.read_csv(file_, header=None, sep="\t")
     df.columns = ['IP', 'Prefix-Length', 'AS']
     return df
+
+def get_org_df(file_):
+    raise NotImplementedError
