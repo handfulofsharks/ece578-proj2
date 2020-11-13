@@ -13,14 +13,6 @@ def main(opts):
     ----------
     opts : argparse object
         Object containing variables set by default or the user via command line
-
-    Returns
-    -------
-    None
-
-    Raises
-    ------
-    None
     """
     check_file_validity([opts.as2_types_file, opts.as_rel2_file, opts.as_rv2_file])
 
@@ -47,14 +39,6 @@ def get_graph_1(data_dict):
     ----------
     data_dict : dictionary of AS Node objects
         data frame that contains AS data in the format of AS | source | Type
-
-    Returns
-    -------
-    None
-
-    Raises
-    ------
-    None
     """
     labels = ['Transit/Access', 'Content', 'Enterprise']
     bins = [0]*len(labels)
@@ -86,17 +70,10 @@ def get_graph_2(data_dict):
     ----------
     data_dict : dictionary of AS Node objects
         data frame that contains AS data in the format of AS | source | Type
-
-    Returns
-    -------
-    None
-
-    Raises
-    ------
-    None
     """
     labels = ['1', '2-5', '6-100', '101-200', '201-1000', '1000+']
     bins = [0]*len(labels)
+
     for i in data_dict:
         if data_dict[i].degree == 1:
             bins[0] += 1
@@ -123,6 +100,7 @@ def get_graph_2(data_dict):
     plt.savefig('node_degree_dist.png', dpi=300)
     plt.close(fig)
 
+
 def get_graph_3(data_dict):
     """
     Given a dataframe of AS (Autonomous Systems) IP mappings, create histogram of the IP space assigned to each AS
@@ -130,14 +108,6 @@ def get_graph_3(data_dict):
     Parameters
     ----------
     data_dict : dictionary of AS node object
-
-    Returns
-    -------
-    None
-
-    Raises
-    ------
-    None
     """
     labels = ['0-1000', '1000-10K', '10k-100k', '100k-1M', '1M-10M', '10M+']
     bins = [0]*len(labels)
@@ -166,7 +136,6 @@ def get_graph_3(data_dict):
     plt.title('Autonomous System IP Space Distribution')
     plt.savefig('ip_space_dist.png', dpi=300)
     plt.close(fig)
-
 
 
 def get_graph_4(data_dict):

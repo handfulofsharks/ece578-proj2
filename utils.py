@@ -54,10 +54,6 @@ def sort_classifications(df):
     -------
     data_dict
         dictionary of AS Node objects
-
-    Raises
-    ------
-    None
     """
     df = df.set_index(df.columns.values[0])
     data_dict = dict()
@@ -83,30 +79,26 @@ def sort_relationships(data_dict, df):
     -------
     data_dict
         dictionary of node objects
-
-    Raises
-    ------
-    None
     """
-    df.set_index(df.columns.values[0], inplace=True)
     for index, row in df.iterrows():
-        if index in data_dict:
-            data_dict[index].degree += 1
-            data_dict[index].connections.append(row.ASb)
+        if row.ASa in data_dict:
+            data_dict[row.ASa].degree += 1
+            data_dict[row.ASa].connections.append(row.ASb)
         else:
-            data_dict[index] = ASNode(node_name=index)
-            data_dict[index].degree += 1
-            data_dict[index].connections.append(row.ASb)
+            data_dict[row.ASa] = ASNode(node_name=row.ASa)
+            data_dict[row.ASa].degree += 1
+            data_dict[row.ASa].connections.append(row.ASb)
         if row.ASb in data_dict:
-            data_dict[index].degree += 1
-            data_dict[index].connections.append(index)
+            data_dict[row.ASb].degree += 1
+            data_dict[row.ASb].connections.append(index)
         else:
             data_dict[row.ASb] = ASNode(node_name=row.ASb)
             data_dict[row.ASb].degree += 1
-            data_dict[row.ASb].connections.append(index)
+            data_dict[row.ASb].connections.append(row.ASa)
         if row.Link == -1:
-            data_dict[index].customers.append(row.ASb)
+            data_dict[row.ASa].customers.append(row.ASb)
     return data_dict
+
 
 def sort_ip_prefixes(data_dict, df):
     import re
@@ -122,6 +114,7 @@ def sort_ip_prefixes(data_dict, df):
                     data_dict[AS] = ASNode(node_name=AS)
                     data_dict[AS].ip_prefs.append(IP_Prefix(row[0], row[1]))
     return data_dict
+
 
 def check_file_validity(files):
     """
@@ -191,6 +184,7 @@ def get_df_from_file(file_):
     columns_list = column_values_str.split(sep)
     df = pd.read_csv(file_, header=None, names=columns_list, delimiter=sep, skiprows=skip)
     return df
+
 
 def get_rv2_df(file_):
     import pandas as pd
