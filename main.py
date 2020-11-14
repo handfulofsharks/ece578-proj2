@@ -226,12 +226,13 @@ def get_graph_4(data_dict):
 
 def get_table_1(top, org_df, id_df):
     rows = list()
+    rows.append(('Rank', 'AS ID', 'Degree', 'Name'))
     rank = 1
     for AS in top:
         org_id = id_df.loc[id_df['id'] == AS.name, 'org_id'].values[0]
         name = org_df.loc[org_df['org_id'] == org_id, 'name'].values[0]
 
-        rows.append((rank, AS.name, org_id, name))
+        rows.append((rank, AS.name, AS.degree, name))
         rank += 1
 
     with open('tier1_as.csv', mode='w') as t1_file:
